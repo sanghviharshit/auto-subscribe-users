@@ -1,0 +1,8 @@
+=== Fix bbPress ===
+Author: Harshit
+
+== Changelog ==
+
+= 1.0.0 =
+* remove WPMUDEV_Dashboard_Notice3 from plugin_loaded hook and add it to init hook
+* Add WPMUDEV_Dashboard_Notice3 class from latest WPMU file - wpmudev-dash-notification.php
