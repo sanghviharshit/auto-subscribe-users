@@ -42,7 +42,6 @@ class Auto_Subscribe_Users {
     function __construct() {
         $this -> init();
         add_action( 'wpmu_new_blog', array( $this, 'add_admin_to_subscribers' ), 10, 6 );
-
     }
 
     /**
@@ -65,6 +64,11 @@ class Auto_Subscribe_Users {
      * @param array  $meta    Meta data. Used to set initial site options.
      */
     function add_admin_to_subscribers( $blog_id, $user_id, $domain, $path, $site_id, $meta ) {
+        
+        // If WPMYU's Subscribe by Email plugin is not active, there's nothing to do.
+        if ( ! class_exists( 'Incsub_Subscribe_By_Email' ) || ! method_exists( 'Incsub_Subscribe_By_Email', 'subscribe_user' ) ) {
+            return;
+        }
 
         $user_info = get_userdata($user_id);
 
