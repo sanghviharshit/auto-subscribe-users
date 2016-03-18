@@ -1,12 +1,13 @@
 <?php
 /*
 Plugin Name: Auto Subscribe Users by Email
-Plugin URI: https://sanghviharshit.github.io/
-Description: Automatically subscribes all users who create a new site using WPMU's Subscribe by Email plugin.
+Plugin URI: https://github.com/sanghviharshit/auto-subscribe-users
+Description: Automatically subscribes all users who create a new site so that they can be notified of any new content on the site using WPMU's Subscribe by Email plugin.
 Author: Harshit Sanghvi
 Author URI: https://about.me/harshit
 Version: 0.0.1
 License: GNU General Public License (Version 2 - GPLv2)
+Network: True
 */
 
 /*

@@ -1,7 +1,0 @@
-=== Auto Subscribe Users ===
-Author: Harshit
-
-== Changelog ==
-
-= 0.0.1 =
-Init
