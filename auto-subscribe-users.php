@@ -2,12 +2,11 @@
 /*
 Plugin Name: Auto Subscribe Users by Email
 Plugin URI: https://github.com/sanghviharshit/auto-subscribe-users
-Description: Automatically subscribes all users who create a new site so that they can be notified of any new content on the site using WPMU's Subscribe by Email plugin.
+Description: Automatically subscribes all users who registers to your site or gets added by the site admins, so that they can be notified of any new content on the site using WPMU's Subscribe by Email plugin.
 Author: Harshit Sanghvi
 Author URI: https://about.me/harshit
-Version: 0.0.1
+Version: 0.0.2
 License: GNU General Public License (Version 2 - GPLv2)
-Network: True
 */
 
 /*
@@ -43,6 +42,8 @@ class Auto_Subscribe_Users {
     function __construct() {
         $this -> init();
         add_action( 'wpmu_new_blog', array( $this, 'add_admin_to_subscribers' ), 10, 6 );
+        //add_action( 'wpmu_new_user', array( $this, 'add_user_to_subscribers' ), 10, 6 );
+        add_action( 'user_register', array( $this, 'add_user_to_subscribers' ), 10, 6 );
     }
 
     /**
@@ -51,6 +52,25 @@ class Auto_Subscribe_Users {
      * @return void
      */
     function init() {
+
+    }
+
+    /**
+     * Example of wpmu_new_user usage
+     * 
+     * @param int    $user_id User ID.
+     */
+    function add_user_to_subscribers( $user_id ) {
+        
+        // If WPMYU's Subscribe by Email plugin is not active, there's nothing to do.
+        if ( ! class_exists( 'Incsub_Subscribe_By_Email' ) || ! method_exists( 'Incsub_Subscribe_By_Email', 'subscribe_user' ) || ! method_exists( 'Incsub_Subscribe_By_Email', 'send_confirmation_mail' ) ) {
+            return;
+        }
+
+        $user_info = get_userdata($user_id);
+        //Force email confirmation
+        $subscription_id = Incsub_Subscribe_By_Email::subscribe_user( $user_info->user_email, __( 'Auto Subscribe', INCSUB_SBE_LANG_DOMAIN ), __( 'Auto Subscribed on User Registered Action', INCSUB_SBE_LANG_DOMAIN ), true );
+        //Incsub_Subscribe_By_Email::send_confirmation_mail( $subscription_id, $force = true );
 
     }
 
@@ -67,14 +87,15 @@ class Auto_Subscribe_Users {
     function add_admin_to_subscribers( $blog_id, $user_id, $domain, $path, $site_id, $meta ) {
         
         // If WPMYU's Subscribe by Email plugin is not active, there's nothing to do.
-        if ( ! class_exists( 'Incsub_Subscribe_By_Email' ) || ! method_exists( 'Incsub_Subscribe_By_Email', 'subscribe_user' ) ) {
+        if ( ! class_exists( 'Incsub_Subscribe_By_Email' ) || ! method_exists( 'Incsub_Subscribe_By_Email', 'subscribe_user' ) || ! method_exists( 'Incsub_Subscribe_By_Email', 'send_confirmation_mail' ) ) {
             return;
         }
 
         $user_info = get_userdata($user_id);
+        //Force email confirmation
+        $subscription_id = Incsub_Subscribe_By_Email::subscribe_user( $user_info->user_email, __( 'Auto Subscribe', INCSUB_SBE_LANG_DOMAIN ), __( 'Auto Subscribed on Create Site Action', INCSUB_SBE_LANG_DOMAIN ), true );
+        //Incsub_Subscribe_By_Email::send_confirmation_mail( $subscription_id, $force = true );
 
-        Incsub_Subscribe_By_Email::subscribe_user( $user_info->user_email, __( 'Auto Subscribe', INCSUB_SBE_LANG_DOMAIN ), __( 'Auto Subscribed on Create Site Action', INCSUB_SBE_LANG_DOMAIN ), false );
-    
     }
 
 }
