@@ -2,16 +2,16 @@
 /*
 Plugin Name: Auto Subscribe Users by Email
 Plugin URI: https://github.com/sanghviharshit/auto-subscribe-users
-Description: Automatically subscribes all users who registers to your site or gets added by the site admins, so that they can be notified of any new content on the site using WPMU's Subscribe by Email plugin.
+Description: Automatically subscribes users so that they can be notified of any new content on the site.
 Author: Harshit Sanghvi
 Author URI: https://about.me/harshit
-Version: 0.0.2
-License: GNU General Public License (Version 2 - GPLv2)
+Version: 0.0.3
+License: GNU General Public License (Version 3 - GPLv3)
 */
 
 /*
 This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License (Version 2 - GPLv2) as published by
+it under the terms of the GNU General Public License (Version 3 - GPLv3) as published by
 the Free Software Foundation.
 
 This program is distributed in the hope that it will be useful,
@@ -29,10 +29,11 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  * @package Auto_Subscribe_Users
  * @author Harshit Sanghvi {@link http://about.me/harshit}
- * @license GNU General Public License (Version 2 - GPLv2) {@link http://www.gnu.org/licenses/gpl-2.0.html}
+ * @license GNU General Public License (Version 3 - GPLv3) {@link http://www.gnu.org/licenses/gpl-3.0.html}
  */
 
 define( 'AUTO_SUBSCRIBE_USERS_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
+define( 'AUTO_SUBSCRIBE_USERS_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
 
 class Auto_Subscribe_Users {
 
@@ -40,10 +41,7 @@ class Auto_Subscribe_Users {
      * Constructor.
      */
     function __construct() {
-        $this -> init();
-        add_action( 'wpmu_new_blog', array( $this, 'add_admin_to_subscribers' ), 10, 6 );
-        //add_action( 'wpmu_new_user', array( $this, 'add_user_to_subscribers' ), 10, 6 );
-        add_action( 'user_register', array( $this, 'add_user_to_subscribers' ), 10, 6 );
+        add_action( 'init', array( $this, 'init' ), 1 );
     }
 
     /**
@@ -52,7 +50,12 @@ class Auto_Subscribe_Users {
      * @return void
      */
     function init() {
-
+        //In multisite, auto-subscribe on 'wpmu_new_user' or 'user_register' hook can only work if the subscribe-by-email plugin is also network activated.
+        if(is_multisite()) {
+            add_action( 'wpmu_new_blog', array( $this, 'add_admin_to_subscribers' ), 10, 6 );
+        } else {            
+            add_action( 'user_register', array( $this, 'add_user_to_subscribers' ), 10, 6 );    
+        }
     }
 
     /**
@@ -61,7 +64,14 @@ class Auto_Subscribe_Users {
      * @param int    $user_id User ID.
      */
     function add_user_to_subscribers( $user_id ) {
-        
+        // Makes sure the plugin is defined before trying to use it
+        if ( ! function_exists( 'is_plugin_active_for_network' ) ) {
+            require_once( ABSPATH . '/wp-admin/includes/plugin.php' );
+        }
+        if(is_multisite() && !is_plugin_active_for_network(AUTO_SUBSCRIBE_USERS_PLUGIN_BASENAME)) {
+            return;
+        }
+
         // If WPMYU's Subscribe by Email plugin is not active, there's nothing to do.
         if ( ! class_exists( 'Incsub_Subscribe_By_Email' ) || ! method_exists( 'Incsub_Subscribe_By_Email', 'subscribe_user' ) || ! method_exists( 'Incsub_Subscribe_By_Email', 'send_confirmation_mail' ) ) {
             return;
@@ -85,8 +95,15 @@ class Auto_Subscribe_Users {
      * @param array  $meta    Meta data. Used to set initial site options.
      */
     function add_admin_to_subscribers( $blog_id, $user_id, $domain, $path, $site_id, $meta ) {
-        
-        // If WPMYU's Subscribe by Email plugin is not active, there's nothing to do.
+        // Makes sure the plugin is defined before trying to use it
+        if ( ! function_exists( 'is_plugin_active_for_network' ) ) {
+            require_once( ABSPATH . '/wp-admin/includes/plugin.php' );
+        }
+        if(!is_multisite() || !is_plugin_active_for_network(AUTO_SUBSCRIBE_USERS_PLUGIN_BASENAME)) {
+            return;
+        }
+
+        // The Subscription plugin has to be active on the main site. If WPMYU's Subscribe by Email plugin is not active, there's nothing to do. 
         if ( ! class_exists( 'Incsub_Subscribe_By_Email' ) || ! method_exists( 'Incsub_Subscribe_By_Email', 'subscribe_user' ) || ! method_exists( 'Incsub_Subscribe_By_Email', 'send_confirmation_mail' ) ) {
             return;
         }
