@@ -6,6 +6,9 @@ Automatically subscribes your users so that they can be notified of any new cont
 * In a multisite WordPress install, all the users creating new sites will automatically subscribed to the main site's new content.
 * In a single WordPress installation, all users registering to the main site or getting added by other admins will be automatically subscribed to the main site's new content.
 
+## WordPress.org
+[Auto Subscribe Users](https://wordpress.org/plugins/auto-subscribe-users/)
+
 ## Contributors
 
 Pull requests, bug reports or feature requests are always welcome!
