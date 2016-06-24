@@ -4,8 +4,8 @@ Plugin Name: Auto Subscribe Users by Email
 Plugin URI: https://github.com/sanghviharshit/auto-subscribe-users
 Description: Automatically subscribes users so that they can be notified of any new content on the site.
 Author: Harshit Sanghvi
-Author URI: https://about.me/harshit
-Version: 0.0.3
+Author URI: https://sanghviharshit.com
+Version: 0.0.4
 License: GNU General Public License (Version 3 - GPLv3)
 */
 
@@ -53,9 +53,11 @@ class Auto_Subscribe_Users {
         //In multisite, auto-subscribe on 'wpmu_new_user' or 'user_register' hook can only work if the subscribe-by-email plugin is also network activated.
         if(is_multisite()) {
             add_action( 'wpmu_new_blog', array( $this, 'add_admin_to_subscribers' ), 10, 6 );
-        } else {            
-            add_action( 'user_register', array( $this, 'add_user_to_subscribers' ), 10, 6 );    
+        } else {
+            add_action( 'user_register', array( $this, 'add_user_to_subscribers' ), 10, 6 );
         }
+        
+        
     }
 
     /**
@@ -65,23 +67,56 @@ class Auto_Subscribe_Users {
      */
     function add_user_to_subscribers( $user_id ) {
         // Makes sure the plugin is defined before trying to use it
+        /*
         if ( ! function_exists( 'is_plugin_active_for_network' ) ) {
             require_once( ABSPATH . '/wp-admin/includes/plugin.php' );
         }
-        if(is_multisite() && !is_plugin_active_for_network(AUTO_SUBSCRIBE_USERS_PLUGIN_BASENAME)) {
+        if(!is_plugin_active_for_network(AUTO_SUBSCRIBE_USERS_PLUGIN_BASENAME))
+        */
+        if(is_multisite()) {
             return;
         }
 
-        // If WPMYU's Subscribe by Email plugin is not active, there's nothing to do.
-        if ( ! class_exists( 'Incsub_Subscribe_By_Email' ) || ! method_exists( 'Incsub_Subscribe_By_Email', 'subscribe_user' ) || ! method_exists( 'Incsub_Subscribe_By_Email', 'send_confirmation_mail' ) ) {
-            return;
+        /** 
+         * switch_to_blog() doesn't switch active plugins - https://core.trac.wordpress.org/ticket/14941
+         */
+        /*
+        if(is_multisite()) {
+            
+             // Main blog's blog id - http://wordpress.stackexchange.com/questions/5094/how-to-get-the-main-blogs-id-and-db-prefix-from-a-mu-plugin
+             
+            $main_blog_id = BLOG_ID_CURRENT_SITE;
+            if ( is_main_site($main_blog_id) ) {
+                switch_to_blog($main_blog_id);
+            }
+            else {
+                return;
+            }
         }
+        */
+        
+        if( function_exists( 'es_sync_registereduser') ) {
+            // If Email Subscribers & Newsletter Plugin is active on the main site
+            $es_c_emailsubscribers = get_option('es_c_emailsubscribers', 'norecord');
+            self::write_log("es_c_emailsubscribers" . $es_c_emailsubscribers);
+            if($es_c_emailsubscribers == 'norecord' || $es_c_emailsubscribers == "" || (!empty($es_c_emailsubscribers['es_registered']) && $es_c_emailsubscribers['es_registered'] <> "YES"))  {
+                $es_c_emailsubscribers_bak = $es_c_emailsubscribers;
+                $es_c_emailsubscribers['es_registered'] = "YES";
+                $es_c_emailsubscribers['es_registered_group'] = "Auto Subscribe";
+                update_option('es_c_emailsubscribers', $es_c_emailsubscribers);
+                self::write_log("$es_c_emailsubscribers" . $es_c_emailsubscribers);
+                es_sync_registereduser($user_id);
+                update_option('es_c_emailsubscribers', $$es_c_emailsubscribers_bak);
+            }
+            
+        } else if ( class_exists( 'Incsub_Subscribe_By_Email' ) && method_exists( 'Incsub_Subscribe_By_Email', 'subscribe_user' ) && method_exists( 'Incsub_Subscribe_By_Email', 'send_confirmation_mail' ) ) {
+            // If WPMYU's Subscribe by Email plugin is not active, there's nothing to do.
+            $user_info = get_userdata($user_id);
+            //Force email confirmation
+            $subscription_id = Incsub_Subscribe_By_Email::subscribe_user( $user_info->user_email, __( 'Auto Subscribe', INCSUB_SBE_LANG_DOMAIN ), __( 'Auto Subscribed on User Registered Action', INCSUB_SBE_LANG_DOMAIN ), true );
+            //Incsub_Subscribe_By_Email::send_confirmation_mail( $subscription_id, $force = true );
 
-        $user_info = get_userdata($user_id);
-        //Force email confirmation
-        $subscription_id = Incsub_Subscribe_By_Email::subscribe_user( $user_info->user_email, __( 'Auto Subscribe', INCSUB_SBE_LANG_DOMAIN ), __( 'Auto Subscribed on User Registered Action', INCSUB_SBE_LANG_DOMAIN ), true );
-        //Incsub_Subscribe_By_Email::send_confirmation_mail( $subscription_id, $force = true );
-
+        }
     }
 
     /**
@@ -103,18 +138,39 @@ class Auto_Subscribe_Users {
             return;
         }
 
-        // The Subscription plugin has to be active on the main site. If WPMYU's Subscribe by Email plugin is not active, there's nothing to do. 
-        if ( ! class_exists( 'Incsub_Subscribe_By_Email' ) || ! method_exists( 'Incsub_Subscribe_By_Email', 'subscribe_user' ) || ! method_exists( 'Incsub_Subscribe_By_Email', 'send_confirmation_mail' ) ) {
-            return;
+        if( function_exists( 'es_sync_registereduser') ) {
+            // If Email Subscribers & Newsletter Plugin is active on the main site
+            $es_c_emailsubscribers = get_option('es_c_emailsubscribers', 'norecord');
+            self::write_log("es_c_emailsubscribers" . $es_c_emailsubscribers);
+            if($es_c_emailsubscribers == 'norecord' || $es_c_emailsubscribers == "" || (!empty($es_c_emailsubscribers['es_registered']) && $es_c_emailsubscribers['es_registered'] <> "YES"))  {
+                $es_c_emailsubscribers_bak = $es_c_emailsubscribers;
+                $es_c_emailsubscribers['es_registered'] = "YES";
+                $es_c_emailsubscribers['es_registered_group'] = "Auto Subscribe";
+                update_option('es_c_emailsubscribers', $es_c_emailsubscribers);
+                self::write_log("$es_c_emailsubscribers" . $es_c_emailsubscribers);
+                es_sync_registereduser($user_id);
+                update_option('es_c_emailsubscribers', $$es_c_emailsubscribers_bak);
+            }
+            
+        } else if ( class_exists( 'Incsub_Subscribe_By_Email' ) && method_exists( 'Incsub_Subscribe_By_Email', 'subscribe_user' ) && method_exists( 'Incsub_Subscribe_By_Email', 'send_confirmation_mail' ) ) {
+            // The Subscription plugin has to be active on the main site. If WPMYU's Subscribe by Email plugin is not active, there's nothing to do. 
+            $user_info = get_userdata($user_id);
+            //Force email confirmation
+            $subscription_id = Incsub_Subscribe_By_Email::subscribe_user( $user_info->user_email, __( 'Auto Subscribe', INCSUB_SBE_LANG_DOMAIN ), __( 'Auto Subscribed on Create Site Action', INCSUB_SBE_LANG_DOMAIN ), true );
+            //Incsub_Subscribe_By_Email::send_confirmation_mail( $subscription_id, $force = true );
         }
-
-        $user_info = get_userdata($user_id);
-        //Force email confirmation
-        $subscription_id = Incsub_Subscribe_By_Email::subscribe_user( $user_info->user_email, __( 'Auto Subscribe', INCSUB_SBE_LANG_DOMAIN ), __( 'Auto Subscribed on Create Site Action', INCSUB_SBE_LANG_DOMAIN ), true );
-        //Incsub_Subscribe_By_Email::send_confirmation_mail( $subscription_id, $force = true );
 
     }
 
+    public static function write_log ( $log )  {
+        if ( true === WP_DEBUG ) {
+            if ( is_array( $log ) || is_object( $log ) ) {
+                error_log( print_r( $log, true ) );
+            } else {
+                error_log( $log );
+            }
+        }
+    }
 }
 
 global $auto_subscribe_users;

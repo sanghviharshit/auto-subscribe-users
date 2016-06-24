@@ -2,7 +2,12 @@
 
 ![Banner](https://cloud.githubusercontent.com/assets/1029311/16249375/462afcc6-37e3-11e6-9adf-5ccb5d7d541e.png)
 
-Automatically subscribes your users so that they can be notified of any new content on the main site using [WPMU's Subscribe by Email plugin](https://premium.wpmudev.org/project/subscribe-by-email/).
+Automatically subscribes your users so that they can be notified of any new content on the main site using one of the following plugins -
+
+* [WPMU's Subscribe by Email plugin](https://premium.wpmudev.org/project/subscribe-by-email/).
+* [Email Subscribers & Newsletters](https://wordpress.org/plugins/email-subscribers/).
+
+### Note
 * In a multisite WordPress install, all the users creating new sites will automatically subscribed to the main site's new content.
 * In a single WordPress installation, all users registering to the main site or getting added by other admins will be automatically subscribed to the main site's new content.
 
