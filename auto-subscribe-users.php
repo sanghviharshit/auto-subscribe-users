@@ -148,7 +148,7 @@ class Auto_Subscribe_Users {
   			$user_esn = get_user_meta($user_id, $this->esn_key, $single = true);
 
         // Check if Email Subscribers & Newsletter Plugin is active on the main site
-        if( $user_esn != '' && $user_esn != 'true' ) {
+        if( $user_esn == '' || $user_esn != 'true' ) {
         	if( function_exists( 'es_sync_registereduser') ) {
         		
         		$es_c_emailsubscribers = get_option('es_c_emailsubscribers', 'norecord');
@@ -170,7 +170,7 @@ class Auto_Subscribe_Users {
 
   			$user_sbe = get_user_meta($user_id, $this->sbe_key, $single = true);
   			
-				if( $user_sbe != '' && $user_sbe != 'true' ) {
+				if( $user_sbe == '' || $user_sbe != 'true' ) {
 	        // Check if WPMU Subscribe By Email plugin is active
 	        if ( class_exists( 'Incsub_Subscribe_By_Email' ) && method_exists( 'Incsub_Subscribe_By_Email', 'subscribe_user' ) && method_exists( 'Incsub_Subscribe_By_Email', 'send_confirmation_mail' ) ) {
 	            // The Subscription plugin has to be active on the main site. If WPMYU's Subscribe by Email plugin is not active, there's nothing to do. 
