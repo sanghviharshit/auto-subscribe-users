@@ -37,10 +37,17 @@ define( 'AUTO_SUBSCRIBE_USERS_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
 
 class Auto_Subscribe_Users {
 
+
+		private $sbe_key;
+		private $esn_key;
+
     /**
      * Constructor.
      */
     function __construct() {
+    	 	$this->sbe_key = 'asu_sbe';
+    	 	$this->esn_key = 'asu_esn';
+
         add_action( 'init', array( $this, 'init' ), 1 );
     }
 
@@ -138,10 +145,14 @@ class Auto_Subscribe_Users {
             return;
         }
 
-        if( function_exists( 'es_sync_registereduser') ) {
-            // If Email Subscribers & Newsletter Plugin is active on the main site
-            $es_c_emailsubscribers = get_option('es_c_emailsubscribers', 'norecord');
-            self::write_log("es_c_emailsubscribers" . $es_c_emailsubscribers);
+  			$user_esn = get_user_meta($user_id, $this->esn_key, $single = true);
+
+        // Check if Email Subscribers & Newsletter Plugin is active on the main site
+        if( $user_esn != '' && $user_esn != 'true' ) {
+        	if( function_exists( 'es_sync_registereduser') ) {
+        		
+        		$es_c_emailsubscribers = get_option('es_c_emailsubscribers', 'norecord');
+            //self::write_log("es_c_emailsubscribers" . $es_c_emailsubscribers);
             if($es_c_emailsubscribers == 'norecord' || $es_c_emailsubscribers == "" || (!empty($es_c_emailsubscribers['es_registered']) && $es_c_emailsubscribers['es_registered'] <> "YES"))  {
                 $es_c_emailsubscribers_bak = $es_c_emailsubscribers;
                 $es_c_emailsubscribers['es_registered'] = "YES";
@@ -150,15 +161,29 @@ class Auto_Subscribe_Users {
                 self::write_log("$es_c_emailsubscribers" . $es_c_emailsubscribers);
                 es_sync_registereduser($user_id);
                 update_option('es_c_emailsubscribers', $$es_c_emailsubscribers_bak);
-            }
             
-        } else if ( class_exists( 'Incsub_Subscribe_By_Email' ) && method_exists( 'Incsub_Subscribe_By_Email', 'subscribe_user' ) && method_exists( 'Incsub_Subscribe_By_Email', 'send_confirmation_mail' ) ) {
-            // The Subscription plugin has to be active on the main site. If WPMYU's Subscribe by Email plugin is not active, there's nothing to do. 
-            $user_info = get_userdata($user_id);
-            //Force email confirmation
-            $subscription_id = Incsub_Subscribe_By_Email::subscribe_user( $user_info->user_email, __( 'Auto Subscribe', INCSUB_SBE_LANG_DOMAIN ), __( 'Auto Subscribed on Create Site Action', INCSUB_SBE_LANG_DOMAIN ), true );
-            //Incsub_Subscribe_By_Email::send_confirmation_mail( $subscription_id, $force = true );
+                //Add auto subscribed boolean to user meta, so if the user unsubsribes, we don't auto subscribe that user next time the user registers new site.
+                update_user_meta( $user_id, $this->esn_key, 'true' );
+            }
+          }
         }
+
+  			$user_sbe = get_user_meta($user_id, $this->sbe_key, $single = true);
+  			
+				if( $user_sbe != '' && $user_sbe != 'true' ) {
+	        // Check if WPMU Subscribe By Email plugin is active
+	        if ( class_exists( 'Incsub_Subscribe_By_Email' ) && method_exists( 'Incsub_Subscribe_By_Email', 'subscribe_user' ) && method_exists( 'Incsub_Subscribe_By_Email', 'send_confirmation_mail' ) ) {
+	            // The Subscription plugin has to be active on the main site. If WPMYU's Subscribe by Email plugin is not active, there's nothing to do. 
+	            $user_info = get_userdata($user_id);
+	            //Force email confirmation
+	            $subscription_id = Incsub_Subscribe_By_Email::subscribe_user( $user_info->user_email, __( 'Auto Subscribe', INCSUB_SBE_LANG_DOMAIN ), __( 'Auto Subscribed on Create Site Action', INCSUB_SBE_LANG_DOMAIN ), true );
+	            //ToDo: settings page
+	            //Incsub_Subscribe_By_Email::send_confirmation_mail( $subscription_id, $force = true );
+
+	            //Add auto subscribed boolean to user meta, so if the user unsubsribes, we don't auto subscribe that user next time the user registers new site.
+              update_user_meta( $user_id, $this->sbe_key, 'true' );
+	        }
+	      }
 
     }
 
