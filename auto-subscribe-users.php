@@ -5,7 +5,7 @@ Plugin URI: https://github.com/sanghviharshit/auto-subscribe-users
 Description: Automatically subscribes users so that they can be notified of any new content on the site.
 Author: Harshit Sanghvi
 Author URI: https://sanghviharshit.com
-Version: 0.0.5
+Version: 0.0.6
 License: GNU General Public License (Version 3 - GPLv3)
 */
 
