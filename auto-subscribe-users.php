@@ -162,7 +162,7 @@ class Auto_Subscribe_Users {
                 es_sync_registereduser($user_id);
                 update_option('es_c_emailsubscribers', $$es_c_emailsubscribers_bak);
             
-                //Add auto subscribed boolean to user meta, so if the user unsubsribes, we don't auto subscribe that user next time the user registers new site.
+                //Add auto subscribed boolean to user meta, so if the user unsubscribes, we don't auto subscribe that user next time the user registers new site.
                 update_user_meta( $user_id, $this->esn_key, 'true' );
             }
           }
