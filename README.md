@@ -25,7 +25,7 @@ Pull requests, bug reports or feature requests are always welcome!
 
 ## Wishlist
 
-1. A way to know if the site creator has unsubscribed before and shouldn't be auto subscribed again if the user creates another site.
+1. ~~A way to know if the site creator has unsubscribed before and shouldn't be auto subscribed again if the user creates another site.~~
 2. ~~Settings page for selecting which users should be auto-subscribed:~~
   * ~~Site Creators - possibly useful in the multisite environments.~~
   * ~~All users added to the database - possibly useful in single site WordPress install~~
